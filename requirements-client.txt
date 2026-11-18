@@ -1,0 +1,21 @@
+# 客户端运行依赖（听写：快捷键 + 麦克风 + 上屏）
+rich
+colorama
+pynput
+sounddevice
+pyclip
+keyboard
+watchdog
+websockets
+numpy
+pypinyin
+rapidfuzz
+srt
+pystray
+Pillow
+requests
+
+# LLM 润色不再依赖 openai / ollama 这两个 SDK：
+# 请求统一走 llmkit（纯标准库 http.client），离线包里不用再装可选依赖，
+# 也避免了 SDK 版本升级导致的超时/异常类型漂移。
+# 只有你自己写脚本直接 import openai 时才需要另外装。

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>启飞输入法 v2.9 · 内置大模型版打包与真机安装核验报告</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 20px 56px; background: #f5f6f8;
+         color: #1f2329; font: 14px/1.65 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: .3px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+  .verdict { background: #ecfdf3; border: 1px solid #a7f3d0; border-left: 4px solid #16a34a;
+             border-radius: 8px; padding: 14px 18px; margin-bottom: 26px; }
+  .verdict b { color: #15803d; font-size: 16px; }
+  .verdict p { margin: 6px 0 0; color: #365c47; }
+  .alert { background: #fff7ed; border: 1px solid #fed7aa; border-left: 4px solid #ea580c;
+           border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: #7c2d12; }
+  .new { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #2563eb;
+         border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: #1e3a8a; }
+  section { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 18px 20px; margin-bottom: 16px; }
+  h2 { font-size: 15px; margin: 0 0 14px; padding-bottom: 10px;
+       border-bottom: 1px solid #eef0f2; color: #111827; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #f0f1f3; }
+  th { color: #6b7280; font-weight: 600; background: #fafbfc; }
+  tr:last-child td { border-bottom: none; }
+  .num { font-variant-numeric: tabular-nums; }
+  .ok { color: #15803d; font-weight: 600; }
+  .bad { color: #b91c1c; font-weight: 600; }
+  .muted { color: #6b7280; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px;
+         background: #e8f1ff; color: #1d4ed8; }
+  .tag.grey { background: #f1f2f4; color: #4b5563; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin: 5px 0; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px;
+         font: 12px/1.5 Consolas, "Cascadia Mono", monospace; color: #374151; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+  .grid div { padding: 4px 0; border-bottom: 1px dashed #f0f1f3; }
+  .foot { color: #9ca3af; font-size: 12px; text-align: center; margin-top: 26px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>启飞输入法 v2.9 · 内置大模型版打包与真机安装核验报告</h1>
+  <div class="sub">2026-11-07 更新 · 项目 D:\project\CapsWriter-Offline · 含安装包内置大模型、首次安装开箱即用、覆盖安装保护、真机端到端语音识别与 GUI 界面验证，以及最终版图标重设计与重出包</div>
+
+  <div class="verdict">
+    <b>结论：安装包已内置中文润色大模型，第一次装完就能用；最终交付包在本机真装两遍、真测通过。</b>
+    <p><b>当前交付包（按新图标重出）：发版自检 47/47、真机覆盖安装 21/21、GUI 10/10</b>，四个 exe 的 PE 图标资源、随包 ico 与桌面快捷方式全部为新版设计，详见第十节。支撑链路：全新目录静默安装 <code>BUNDLED_MODEL_OK</code> 16/16（内置模型与源文件 md5 一致、自动选中并填充配置，再用<b>随包</b> llama DLL 跑通加载 / 生成 / SSE / 运行时对话）；升级路径也没断，故意先启动 3 个 <code>QifeiServer.exe</code> 锁住文件，安装器自己清场后覆盖安装成功，37 个用户模型文件一个没动 → <code>COVER_WITH_RUNNING_OK</code> 8/8；服务端 3.91–4.11s 加载、6016 可连，端到端语音识别与 GUI 界面验证闭环。中间两轮分别是：39 项自检时代 <code>RELEASE_VERIFY_OK</code> 39/39 + 安装 17/17，以及设置页修复后重出包的 17/17 + GUI 10/10（第九节）；最后一轮按新图标重出，自检扩到 47 项、安装验证扩到 21 项（第十节）。<b>报告里出现的 310 文件 / 1207.0 MB / 39 项等数字均属前两轮历史轮次，不是当前交付包。</b></p>
+  </div>
+
+  <div class="new">
+    <b>本轮需求变更（用户明确要求）</b><br>
+    安装包必须自带当前推荐的大模型，<b>第一次安装就有大模型可用</b>；后续升级或下载其他模型完全由用户人工触发，程序不自动下载、覆盖安装也不能冲掉用户换过的模型。这推翻了此前「主包保持干净、模型单独补包」的设计，代价是安装包从 164.8 MB 增至 1207.7 MB。<b>语音识别模型（SenseVoice，约 414 MB）仍按首次启动引导下载</b>，与润色大模型是两回事。
+  </div>
+
+  <div class="alert">
+    <b>累计抓到并修掉的三个硬缺陷</b><br>
+    ① 真机安装后服务端起不来：<code>ModuleNotFoundError: No module named 'onnxruntime'</code>。SenseVoice 走自定义 ONNX 引擎，依赖既没写进 requirements，也没被 PyInstaller 收集，旧自检还漏检成 PASS。<br>
+    ② 完整构建必失败、单目标却正常：三个 <code>Analysis</code> 共用 <code>CONF['workpath']</code>，PyInstaller 构造 <code>base_library.zip</code> 写死「先删再建」，后两个目标必然删前一个的文件，被环境的批量删除保护拦下。<br>
+    ③ <b>本轮新抓到</b>：覆盖安装被运行中的输入法锁住。<code>QifeiServer.exe</code> 的 multiprocessing worker 会占着 exe，第一次覆盖安装直接 <code>PermissionError: [Errno 13]</code>、退出码 1，还留下「两个 exe 已更新、服务端仍是旧版」的半更新状态。修法见第四节。
+  </div>
+
+  <section>
+    <h2>正式分发产物 · dist/（11-07 最终交付）</h2>
+    <table>
+      <thead><tr><th>文件</th><th class="num">体积</th><th>内容 / 核对</th></tr></thead>
+      <tbody>
+        <tr><td>启飞输入法-1.0.0-安装包.exe</td><td class="num">1207.7 MB</td><td>onefile 安装包；<b>内置中文润色大模型</b>，内嵌 payload 与源文件字节完全一致；文件图标已是新版产品图标（8 尺寸）</td></tr>
+        <tr><td>QifeiIME/ （绿色版目录）</td><td class="num">1.4 GB</td><td>三个 exe + 21 个 llama 动态库 + onnxruntime capi / sentencepiece + <code>models/llm/</code> 内置模型</td></tr>
+        <tr><td>启飞输入法-LLM润色模型包.zip</td><td class="num">1065.6 MB</td><td>独立补包，<b>现已非必需</b>；用于给旧版本补模型或离线给别的机器装模型</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin:12px 0 0"><b>最终交付数据（图标重出包后）</b>：<code>installer/payload.zip</code> = 1,254,632,098 bytes / 1196.5 MB / 314 文件，md5 <code>5d719de09de</code>；<code>models/</code> 下恰好一个条目 <code>models/llm/qwen2.5-1.5b-instruct-q4_k_m.gguf</code>（1,117,320,736 bytes，<code>ZIP_STORED</code>），payload 内模型 md5 <code>8e5111fdbc5c</code> 与源文件一致。随包「使用说明.md」在源码 / 绿色版 / payload 三处字节一致（13636 bytes / md5 <code>df87e66c020c</code>）。</p>
+  </section>
+
+  <section>
+    <h2>一、策略变更与真实构建</h2>
+    <table>
+      <thead><tr><th>环节</th><th>实现</th><th>结果</th></tr></thead>
+      <tbody>
+        <tr><td>模型进绿色版</td><td><code>build_all.py::bundle_chat_model()</code> 把 <code>models/llm/qwen2.5-1.5b-instruct-q4_k_m.gguf</code>（1,117,320,736 bytes）复制进 <code>dist/QifeiIME/models/llm/</code>；<code>QIFEI_BUNDLE_MODEL=0</code> 可退回小包策略</td><td class="ok">通过</td></tr>
+        <tr><td>模型进 payload</td><td><code>installer/build_installer.py</code> 不再整目录跳过 <code>models</code>，改为<b>白名单只放行这一个条目</b>（ASR 权重、下载缓存、日志仍不进包），并对它用 <code>ZIP_STORED</code>——GGUF 已量化，deflate 压不动还白等几分钟；打包结束断言清单只有它</td><td class="ok">通过</td></tr>
+        <tr><td>完整构建</td><td><code>build_all.py --installer</code>，PyInstaller all 353s，全流程 8m55s；三个 <code>Analysis</code> 各有独立工作子目录</td><td class="ok">退出码 0</td></tr>
+        <tr><td>安装器修复后重打</td><td>只跑 <code>installer/build_installer.py</code>（产品本体未变），2m47s；日志仅 2 条无害 Qt 翻译告警</td><td class="ok">退出码 0</td></tr>
+        <tr><td>最终 exe</td><td>QifeiIME.exe 4.8 MB / QifeiClient.exe 9.1 MB / QifeiServer.exe 9.2 MB</td><td class="ok">齐全</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin:12px 0 0">历史构建留档：早期临时验证 <code>.tmp/pkgcheck</code> 222 MB（GUI 单目标）、<code>.tmp/pkgcheck-all</code> 284 MB（完整 all，2m49s）、<code>.tmp/pkgcheck-min</code> 155 MB（<code>QIFEI_LLAMA_MINIMAL=1</code> 纯 CPU，29 MB llama bin，无 Vulkan）、<code>.tmp/rebuild-srv-dist</code> 146 MB（首个带 onnxruntime 的服务端包）——这些都是<b>不带模型</b>时期的产物，仅用于验证 DLL 精简与依赖收集。</p>
+  </section>
+
+  <section>
+    <h2>二、产物内容核对</h2>
+    <div class="grid">
+      <div><span class="ok">✓</span> payload 恰好内置一份推荐 GGUF，无其它模型条目</div>
+      <div><span class="ok">✓</span> 内置模型 <code>ZIP_STORED</code> + GGUF 魔数 + 大小一致</div>
+      <div><span class="ok">✓</span> 21 个 llama DLL 全部在位</div>
+      <div><span class="ok">✓</span> onnxruntime capi 与 sentencepiece 扩展随包</div>
+      <div><span class="ok">✓</span> 顶层三个 exe + 热词文件 + 使用说明齐全</div>
+      <div><span class="ok">✓</span> 已剔除 llama-quantize.exe / ggml-rpc.dll / *.txt</div>
+      <div><span class="ok">✓</span> 模型名与 <code>llmkit/registry.py::BUNDLED_CHAT_MODEL</code> 一致</div>
+      <div><span class="ok">✓</span> 使用说明三处字节一致，明确「已内置模型」</div>
+    </div>
+    <p class="muted" style="margin:12px 0 0">早期「无任何 .gguf 混进主包 / models/llm 预建且为空」是<b>上一版</b>的核对结论，本轮已按需求反转；frozen 探测包当时不含模型、<code>validate()</code> 返回 False，也只适用于那个临时探测 exe。</p>
+  </section>
+
+  <section>
+    <h2>三、首次安装开箱即用（本轮重点）</h2>
+    <p class="muted">用<b>最终交付的 Setup.exe</b> 静默装到全新目录 <code>.tmp/fresh-install-final/QifeiIME</code>，再用 <code>.tmp/bundled_model_check.py --fresh</code> 验证；验证的是「用户第一次装完拿到的那个文件」，不是源码仓库里的副本。</p>
+    <table>
+      <thead><tr><th>核对项</th><th>实测</th><th>结果</th></tr></thead>
+      <tbody>
+        <tr><td>全新安装</td><td><code>--silent --dir ... --no-launch</code> 退出码 0，解压 <b>310</b> 个文件，<code>install.log</code> 无用户模型跳过记录</td><td class="ok">通过</td></tr>
+        <tr><td>内置模型落地</td><td><code>models/llm/qwen2.5-1.5b-instruct-q4_k_m.gguf</code> 1,117,320,736 bytes，GGUF 魔数正确，与源模型 md5 <code>8e5111fdbc5c</code> 完全一致</td><td class="ok">通过</td></tr>
+        <tr><td>产品自带校验</td><td><code>model_download.validate()</code> → qwen2.5-1.5b-instruct · qwen2 · Q4_K_M · ctx 32768 · <b>对话模板 ✓</b></td><td class="ok">通过</td></tr>
+        <tr><td>自动选中</td><td><code>registry.bundled_chat_model()</code> 命中；<code>Store.reload()</code> 自动填 <code>model_path</code> / <code>model</code>，<code>backend=local</code>，并写回配置给客户端读</td><td class="ok">通过</td></tr>
+        <tr><td>随包 DLL 真实推理</td><td><code>QIFEI_LLAMA_DLL_DIR</code> 指向<b>全新安装目录自带</b>的 llama bin，跑 <code>tests/test_llm_real_model.py</code>：进程内加载 1.4s、直接生成、SSE 流式「测试成功。」、<code>LLMProcessor</code> 运行时对话 → <code>REAL_MODEL_RESULT=PASS</code></td><td class="ok">通过</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:12px 0 0"><b class="ok">BUNDLED_MODEL_OK · 共 16 项：通过 16，失败 0</b>。重打前的 Setup 也用同样脚本在另一个全新目录验证过一次，同为 16/16。</p>
+  </section>
+
+  <section>
+    <h2>四、覆盖安装与升级路径（本轮重点）</h2>
+    <p class="muted">用户以后人工换模型、升级模型，都不能被安装包冲掉；程序本体（exe / DLL / 说明）则必须照常覆盖，否则升级等于没升。</p>
+    <table>
+      <thead><tr><th>环节</th><th>实测</th><th>结果</th></tr></thead>
+      <tbody>
+        <tr><td>跳过逻辑</td><td><code>installer_app.extract_payload()</code> 对 <code>models/</code> 下目标已存在的文件一律跳过；GUI 与 <code>--silent</code> 共用。用迷你 payload 实测：全新安装落地内置模型，覆盖安装时用户换过的同名模型、其它 <code>.gguf</code> 原样保留，程序本体被更新 → <code>EXTRACT_POLICY_OK</code></td><td class="ok">通过</td></tr>
+        <tr><td class="bad">抓到缺陷 ③</td><td>第一次真机覆盖安装直接 <code>PermissionError: [Errno 13] Permission denied: ...\QifeiServer.exe</code>，退出码 1；3 个 multiprocessing worker 锁住 exe，且 <code>QifeiIME.exe</code> / <code>QifeiClient.exe</code> 已被覆盖，留下半更新状态</td><td class="bad">失败 → 已修</td></tr>
+        <tr><td>修复</td><td>新增 <code>stop_running_apps()</code>：解压前按进程名 <code>taskkill /F /IM</code> 清掉三个 exe 的全部进程、等句柄释放；<code>extract_payload()</code> 对 <code>PermissionError</code> 等待重试一次，仍失败给出可照做的中文提示。不改产品本体，单独重打 Setup.exe 2m47s</td><td class="ok">通过</td></tr>
+        <tr><td>带运行中输入法实测</td><td>故意先启动 3 个 <code>QifeiServer.exe</code>，再用最终 Setup 覆盖安装：退出码 0，<code>install.log</code> 记录「已结束正在运行的输入法：QifeiServer.exe」+「解压 309 个文件…（保留 1 个用户模型，未覆盖）」；无残留进程、6016 端口释放、卸载项指回正式目录</td><td class="ok">8/8</td></tr>
+        <tr><td>安装后完整验证</td><td>37 个用户模型文件逐个比对一致；<code>QifeiServer.exe --selftest</code> PASS（onnxruntime 1.31.1 / sentencepiece 0.2.3 / 模型文件齐全）；真启动服务端 3.91s 引擎加载成功、ASR 服务就绪、6016 可连、日志无加载失败</td><td class="ok">17/17</td></tr>
+        <tr><td>环境恢复</td><td>最后再用最终 Setup 覆盖安装回正式目录，退出码 0、309 文件、保留 1 个用户模型；快捷方式与 HKCU 卸载项均指回 <code>C:\Users\admin\AppData\Local\Programs\QifeiIME</code></td><td class="ok">通过</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:12px 0 0"><b class="ok">COVER_WITH_RUNNING_OK · INSTALL_VERIFY_OK</b>。注意 payload 里 <code>models/</code> 只有一个条目，所以覆盖安装时「保留 1 个用户模型」是预期值——用户其它模型本来就不在包里，天然不会被删。</p>
+  </section>
+
+  <section>
+    <h2>五、发版自检 · 零副作用 · 39 → 47 项</h2>
+    <p class="muted">用 <code>python tools/verify_release.py</code> 跑，全程读 Setup.exe 内嵌字节 + 临时目录，不写桌面 / 开始菜单 / 注册表；1.2 GB payload 用源文件分块 md5 比对、模型只读 4 字节魔数不落盘，实测 22s 跑完。</p>
+    <table>
+      <thead><tr><th>组别</th><th>核对内容</th><th>结果</th></tr></thead>
+      <tbody>
+        <tr><td>1 · 分发产物</td><td>四件产物存在；<code>dist/</code> 顶层白名单只有应用目录 + Setup.exe + 模型补包</td><td class="ok">5/5</td></tr>
+        <tr><td>2 · payload 内容</td><td><b>内置且仅一份推荐模型</b>、大小与源文件一致、<code>ZIP_STORED</code>、GGUF 魔数、模型名与 registry 一致、<code>models/</code> 无多余条目；三个 exe、21 个 llama DLL、热词与说明、onnxruntime capi / sentencepiece；<b>图标 3 项</b>：payload 内 <code>assets/icon.ico</code> 与 <code>_internal/assets/icon.ico</code> 均与源码字节一致、随包 ico 是 8 尺寸 32bpp DIB</td><td class="ok">15/15</td></tr>
+        <tr><td>3 · 内嵌一致性</td><td>Setup.exe 里的 payload.zip 与源文件字节完全一致</td><td class="ok">2/2</td></tr>
+        <tr><td>4 · frozen 代码 + PE 图标</td><td><b>安装器 5 项</b>：<code>marshal.loads()</code> 解析 Setup 主脚本，<code>ensure_dirs</code> 含 <code>models/llm</code>、含 <code>extract_payload</code>（用户模型保护）、含 <code>stop_running_apps</code>；<b>设置页 5 项</b>：纯内存解析 <code>QifeiIME.exe</code> 内嵌 <code>PYZ.pyz</code> 取出 <code>qifei.llm_page</code> 字节码，核对「推荐模型已内置」人工确认、重下完成文案、<code>download()</code> 确实带 <code>force</code> 关键字、旧文案已清除——专门抓「改了源码忘重出包」；<b>图标 5 项（最后一轮新增）</b>：<code>build_installer.py</code> 确实传了 <code>--icon</code>，以及用 <code>LoadLibraryEx</code> + <code>EnumResourceNames(RT_ICON)</code> 零副作用读出四个 exe 的 PE 图标资源，逐字节等于新 ico 的 8 个 DIB</td><td class="ok">15/15</td></tr>
+        <tr><td>5 · 模拟安装</td><td>临时目录只落盘必要文件；用迷你 payload 验证全新安装落地内置模型、覆盖安装不覆盖用户换过的同名模型 / 保留其它模型 / 仍更新程序本体；onnxruntime 在位、随包说明是新版</td><td class="ok">10/10</td></tr>
+      </tbody>
+    </table>
+    <p><b class="ok">RELEASE_VERIFY_OK · 共 47 项检查：通过 47，失败 0，退出码 0</b>（5 + 15 + 2 + 15 + 10）。历史：39 项时代是 39/39，重出包前基线 <b class="bad">35/39</b>，失败的 4 项正好是新增 frozen 断言，用归档旧 GUI exe 反验四项旧包全 False、新包全 True，确认断言有区分度而不是恒真。<b>图标这轮再补 8 项</b>（payload 3 项 + PE 图标 5 项）：重出前基线 <b class="bad">40/47</b>、失败 7 项全是图标断言，重出后 47/47 全绿，详见第十节。</p>
+  </section>
+
+  <section>
+    <h2>六、真机安装与端到端实测（本机，用户授权）</h2>
+    <p class="muted">正式安装位置 <code>C:\Users\admin\AppData\Local\Programs\QifeiIME</code>；静默安装会写桌面 / 开始菜单快捷方式与 HKCU 卸载项，已获用户明确授权。</p>
+    <table>
+      <thead><tr><th>环节</th><th>实测结果</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>端到端语音识别</td><td>用产品自己的 <code>AudioMessage</code> 协议经 WebSocket 发送 <code>demo.mp3</code>，识别出「财联社1月7日点，从国家邮政局了解到…邮政快递业业务年均增长10%。」→ <code>E2E_ASR_OK</code></td><td class="ok">通过</td></tr>
+        <tr><td>配置分叉修复</td><td><code>APPDATA</code> 为空时 <code>config_override.py</code> 会退化到 <code>C:\Users\admin\QifeiIME\config.json</code>，那份仍是旧的 <code>qwen_asr</code>；备份后同步 server 段，两份配置完全一致</td><td class="ok">通过</td></tr>
+        <tr><td>安装版 GUI 全流程</td><td>双击后不再卡「首次设置」下载页，直接进主窗口；自动拉起 <code>QifeiServer.exe</code>、探测 6016 就绪后再拉 <code>QifeiClient.exe</code>；概览显示「模型已就绪 / 听写已启动 / SenseVoice 小模型」；真实点击「大模型」页显示绿标 <code>llama.cpp 就绪</code> + 推荐模型、润色开关为开、后端「直连 llama.cpp（推荐）」→ <code>GUI_FULL_OK</code> 10/10</td><td class="ok">通过</td></tr>
+        <tr><td>本轮新增</td><td>最终 Setup 全新安装 16/16、带运行中输入法的覆盖安装 8/8、覆盖安装后 17/17（详见第三、四节）</td><td class="ok">通过</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin:12px 0 0">截图留证：<code>.tmp/install_gui_ready.png</code>、<code>.tmp/install_gui_llm_page.png</code>。<b>判读坑</b>：<code>server_latest.log</code> 是追加写的，全文搜「加载失败」会命中修复前遗留的报错而误报失败，改为按启动前文件偏移只读本次新增字节。</p>
+  </section>
+
+  <section>
+    <h2>七、模型与回归验证（历史 + 本轮）</h2>
+    <ul>
+      <li><b>最终包内置模型（本轮）</b>：全新安装目录里的 GGUF 用随包 llama DLL 加载 1.4s，直接生成、SSE 流式、<code>LLMProcessor</code> 运行时对话全过 → <code>REAL_MODEL_RESULT=PASS</code></li>
+      <li><b>精简 DLL 组合</b>：删掉 5 个非运行时文件后剩 27.6 MB / 19 文件，用 <code>QIFEI_LLAMA_DLL_DIR</code> 指过去，Qwen2.5-1.5B-Instruct 加载成功并生成「谢谢！」→ <code>DLL_MIN_OK</code></li>
+      <li><b>精简包自带 DLL</b>：直接用 155 MB 包里的 29 MB bin 加载同一模型，输出「OK」→ <code>MIN_PKG_REAL_MODEL_OK</code></li>
+      <li><b>安装版 LLM 全链路</b>：进程内加载 1.7s、直接生成、SSE、运行时对话全过 → <code>REAL_MODEL_RESULT=PASS</code></li>
+      <li><b>常规自检</b>：<code>tests/test_llm_kit.py</code> 20 项全通过；<code>compileall</code>、spec / build_all / installer / verify_release 的 <code>py_compile</code> 通过</li>
+      <li><b>界面</b>：qt_llm_check / qt_mainwindow_check / qt_bundled_model_check 三个离屏验证全过，自动选中推荐模型、ASR 模型标「非对话模型」</li>
+      <li><b>frozen 环境探测（早期临时 exe）</b>：<code>sys.frozen</code> / <code>_MEIPASS</code> 生效，<code>native.dll_dir()</code> 指向 <code>_internal/.../llama/bin</code>、<code>native.available()=True</code>、<code>model_download.target()</code> 落在程序目录 <code>models/llm/</code>、<code>CREATE_NO_WINDOW=0x08000000</code>。该探测包当时不含模型，<code>validate()</code> 返回 False 属预期，<b>不代表最终包</b></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>八、本轮改动</h2>
+    <ul>
+      <li><code>build/build_all.py</code>：新增 <code>bundle_chat_model()</code>，把推荐模型复制进绿色版；<code>QIFEI_BUNDLE_MODEL=0</code> 可退回小包策略</li>
+      <li><code>installer/build_installer.py</code>：<code>models/</code> 白名单只放行内置模型这一个条目，用 <code>ZIP_STORED</code>；打包结束断言模型确实在 payload 且清单只有它</li>
+      <li><code>installer/installer_app.py</code>：抽出统一的 <code>extract_payload()</code>（GUI 与 <code>--silent</code> 共用），<code>models/</code> 下已存在的文件一律跳过；<b>新增 <code>stop_running_apps()</code></b> + <code>PermissionError</code> 等待重试与中文提示；安装界面文案改为「已内置中文润色模型，装完即可用」</li>
+      <li><code>tools/verify_release.py</code>：断言从「无 .gguf 混入」整体反转为「恰好内置一份推荐模型」，自检从 24 项扩到 <b>34 项</b>；1 GB 级 payload 改分块 md5、模型只读 4 字节不落盘，避免自检自己把内存和 <code>rmtree</code> 拖爆</li>
+      <li>历史修复保留：<code>build/qifei.spec</code> 逐文件收集 llama 动态库 + 三个 <code>Analysis</code> 独立工作目录；<code>requirements-server.txt</code> 与 spec 补齐 <code>onnxruntime</code> / <code>sentencepiece</code>；<code>qifei_server.py --selftest</code> 增查依赖与模型权重</li>
+      <li>文档同步：<code>readme.md</code> / <code>docs/CHANGELOG.md</code> / <code>docs/启飞输入法使用说明.md</code>（随包）/ <code>docs/本地大模型如何接入.md</code> / <code>docs/常见问题.md</code>，明确区分「已内置的润色大模型」与「首次启动仍需下载的语音识别模型」</li>
+      <li>新增验证脚本：<code>.tmp/bundled_model_check.py</code>（首次安装 16 项）、<code>.tmp/cover_install_check.py</code>（带运行中输入法的覆盖安装 8 项）</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>九、最后一轮：人工重下入口 + 包体重出（11-07 收口）</h2>
+    <p class="muted">复查「最新安装包在哪」时发现的收尾缺口：内置模型策略已经落地，但设置页还留着旧策略的逻辑与文案，安装包里也是旧 exe。</p>
+    <table>
+      <thead><tr><th>项</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>发现的问题</td><td><code>qifei/llm_page.py::_download_model()</code> 在模型已内置时只弹「模型已就绪」就返回，命令行有 <code>--force</code>、界面却没有——用户想人工重下 / 恢复出厂模型 / 给旧版本补模型时没有入口；方法 docstring、<code>llmkit/model_download.py</code>、<code>llmkit/registry.py</code>、<code>tools/download_llm_model.py</code> 还写着「主包不含 1GB 模型」「主包约 126MB」「变大 8 倍」，与「安装包内置模型」直接冲突</td></tr>
+        <tr><td>改法</td><td>已内置时弹「推荐模型已内置」，明确说明会替换现有文件、<b>默认选「否」</b>，只有人工点「是」才以 <code>force=True</code> 覆盖重下；模型缺失时保持原来的首次下载（默认「是」）。按钮 tooltip 与随包说明同步。启动路径不会自动调用下载</td></tr>
+        <tr><td>源码验证</td><td><code>.tmp/qt_force_download_check.py</code> 离屏 Qt <b>12/12</b>：选否不联网 / 选是 <code>force=True</code> / 模型缺失 <code>force=False</code>；静态断言全项目只有 1 处 <code>model_download.download()</code> 调用点、无过时文案</td></tr>
+        <tr><td>发版自检</td><td><code>tools/verify_release.py</code> 34 → <b>39 项</b>，新增 5 项 frozen 断言：纯内存解析 GUI exe 内的 <code>PYZ.pyz</code> 字节码。<b>坑</b>：Python 3.11+ 把 <code>download(force=force, on_stage=stage)</code> 的关键字名编成 <code>co_consts</code> 里的 <code>('force','on_stage')</code> 元组，<code>force</code> 又是闭包变量，查 <code>co_names</code> 查不到；断言改为直接查关键字元组</td></tr>
+        <tr><td>重出包</td><td>旧 Setup.exe / payload.zip 备份到 <code>.tmp/trash/prebuild-20261107-1548/</code>，绿色版由 <code>clean()</code> 归档到 <code>.tmp/trash/QifeiIME-20261107-155016/</code>；<code>build_all.py --installer</code> <b>10m50s 退出码 0</b>（PyInstaller all 452s）。新 payload <code>1,254,302,464 bytes / 310 文件 / md5 7ca75e23c35b</code>，Setup 1207.0 MB，随包说明三处一致（13636 bytes / <code>df87e66c020c</code>）</td></tr>
+        <tr><td>真机复验</td><td>新 Setup 覆盖安装 <b>5m4s 退出码 0</b>（309 文件、保留 1 个用户模型）；<code>install_verify_final.py --after</code> <b>17/17</b>（37 个用户模型文件逐个一致、服务端 4.20s 加载、6016 可连）；安装版 GUI <b>10/10</b>；安装目录 GUI 与 dist md5 一致、四项 frozen 断言全 True；无残留进程、卸载项指回正式目录</td></tr>
+      </tbody>
+    </table>
+    <p><b class="ok">该轮结论：39/39 RELEASE_VERIFY_OK · 17/17 INSTALL_VERIFY_OK · 10/10 GUI_FULL_OK</b>（图标重出包后的最终数字见第十节）。</p>
+  </section>
+
+  <section>
+    <h2>十、图标重设计与最终重出包（11-07 交付版）</h2>
+    <p class="muted">用户要求重新设计输入法图标。核查发现旧图标与运行时 fallback 是两套视觉语言，而且安装器从来没有给 Setup.exe 指定过产品图标；这一轮把设计、构建链路、发版断言、真机验证一起收口。</p>
+    <table>
+      <thead><tr><th>项</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>核查发现</td><td><code>assets/icon.ico</code> 只有单尺寸 128×128、深底红色 <code>Cw</code>（CapsWriter 遗留），而 <code>qifei/app.py</code> 与 <code>installer/installer_app.py</code> 的 fallback 画的是蓝底白色声波；更关键的是 <code>installer/build_installer.py::build_setup()</code> <b>从没传 <code>--icon</code></b>，Setup.exe 一直用 PyInstaller 默认图标，与产品无关</td></tr>
+        <tr><td>新设计</td><td>「启飞 · 声起字落」：品牌蓝斜向渐变（<code>#7BA2FF → #3D6BFF → #2A45B8</code>）圆角方形 + 白色圆头声波（说出来）+ 底部输入基线与细长光标（落成文字）+ 左上淡高光。新增 <code>tools/make_icon.py</code>：Pillow + numpy、4× 超采样 + LANCZOS，<b>8 个尺寸分三档单独绘制</b>（16/20/24 三根粗条、32 过渡档、≥48 补齐光标与高光），手写 32bpp DIB ICO 容器以兼容 PyInstaller / Qt / Windows 外壳。两处 fallback 同步成同款，Qt 渲染对 ico 的像素 <b>MAE 3.31</b></td></tr>
+        <tr><td>新增 8 项断言</td><td><code>tools/verify_release.py</code> 39 → 47 项：payload 内 <code>assets/icon.ico</code> 与 <code>_internal/assets/icon.ico</code> 与源码字节一致、随包 ico 是 8 尺寸 32bpp DIB、<code>build_installer.py</code> 确实传了 <code>--icon</code>，以及<b>四个 exe 的 PE <code>RT_ICON</code> 资源</b>逐字节等于新 ico 的 8 个 DIB。原理：PyInstaller 把 ICO 各尺寸条目原样写进 exe 的 <code>RT_ICON</code>，用 <code>LoadLibraryEx(LOAD_LIBRARY_AS_DATAFILE)</code> + <code>EnumResourceNames(RT_ICON)</code> 就能零副作用读出来，比只查源码可靠</td></tr>
+        <tr><td>重出前基线</td><td>47 项中 <b>40 通过 / 7 失败</b>，失败项正好全是新断言：三个产品 exe 各只有 1 个旧 RT_ICON、Setup.exe 是 7 个 PyInstaller 默认图标、payload 里是旧 ico 与单尺寸结构。证明断言有区分度，也证明确实必须重出包</td></tr>
+        <tr><td>重出包</td><td>旧 Setup / payload 备份到 <code>.tmp/trash/prebuild-20261107-205148/</code>；<code>build_all.py --installer</code> <b>11m53s 退出码 0</b>（PyInstaller all 511s），日志明确出现 <code>--icon ...assets\icon.ico</code> 与 <code>Copying icon to EXE</code>。新 payload <code>1,254,632,098 bytes / 1196.5 MB / 314 文件 / md5 5d719de09de</code>，Setup <b>1207.7 MB</b>；比上轮多 4 个文件，是 <code>icon.png</code> / <code>icon-preview.png</code> 各进了 <code>assets/</code> 与 <code>_internal/assets/</code></td></tr>
+        <tr><td>重出后自检</td><td><b>47/47 <code>RELEASE_VERIFY_OK</code></b>，四个 exe 的 RT_ICON 全部 8 个且与新 ico 逐字节一致；<code>tools/make_icon.py --check</code> 22/22、<code>.tmp/icon_verify.py</code> 8/8（Qt 读到 8 尺寸、Windows <code>ExtractIconEx</code> 提取成功、两处 fallback 同款）</td></tr>
+        <tr><td>真机覆盖安装</td><td><b>6m28s 退出码 0</b>，解压 313 文件、保留 1 个用户模型（37 个模型文件逐个一致）；服务端 4.11s 加载成功、6016 可连、<code>SELFTEST PASS</code>。<code>.tmp/install_verify_final.py --after</code> <b>21/21</b>（新增 4 项图标断言：安装目录 ico 与源码一致、三个 exe 的 PE 图标 = 新 ico）；安装版 GUI <b>10/10</b>；HKCU 卸载项 / <code>DisplayIcon</code> / 桌面快捷方式都指回正式目录，快捷方式 <code>IconLocation</code> 指向的 exe 其 RT_ICON = 8</td></tr>
+      </tbody>
+    </table>
+    <p><b class="ok">最终：47/47 RELEASE_VERIFY_OK · 21/21 INSTALL_VERIFY_OK · 10/10 GUI_FULL_OK</b>。图标已随正式安装包交付，用户第一次安装看到的就是新设计。</p>
+  </section>
+
+  <section>
+    <h2>十一、未做与待决定</h2>
+    <ul>
+      <li><b>没有按麦克风实测上屏</b>：语音链路已用文件音频经真实 WebSocket 服务端闭环，GUI 也验证会自动拉起听写客户端；剩下「按住快捷键说话 → 文字上屏」属于真实人机交互，需人工按住快捷键说一句确认</li>
+      <li>15 个 <code>ggml-cpu-*</code> 变体（约 17 MB）保留：llama.cpp 按 CPU 特性自动择优，删了会掉性能</li>
+      <li><code>models/llm/qwen3_asr_llm.gguf</code>（1.37 GB，ASR 专用）仍保留，界面已标「非对话模型」且不会自动选中；确认用不上可删</li>
+      <li>测试下载的 <code>models/_packages/</code> 分段缓存与 zip（约 1.3 GB）、以及两次全新安装的临时目录 <code>.tmp/fresh-install/</code> 与 <code>.tmp/fresh-install-final/</code>（各约 1.4 GB）未主动删除——按「不擅自动文件」原则保留作留证，可自行清理</li>
+      <li>独立模型补包仍留在 <code>dist/</code>：新安装包已自带模型，正常安装不需要它；保留是给旧版本 / 离线分发用，如不再需要可停止生成</li>
+      <li>onefile 安装包运行时会先把 1.2 GB payload 解压到系统临时目录，需保证系统盘有约 1.2 GB 临时空间；这是「模型进安装包」的固有代价（最后一次覆盖安装实测 6m28s）</li>
+      <li>旧 Setup / payload 备份有两份（各约 2.4 GB）：<code>.tmp/trash/prebuild-20261107-1548/</code>（人工重下入口重出前）与 <code>.tmp/trash/prebuild-20261107-205148/</code>（图标重出前）；旧绿色版归档在 <code>.tmp/trash/QifeiIME-20261107-155016/</code> 等目录；确认无需回滚后可清理</li>
+    </ul>
+  </section>
+
+  <div class="foot">本报告由打包核验流程生成 · 所有数据来自本机实际构建、安装与运行</div>
+</div>
+</body>
+</html>

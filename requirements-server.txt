@@ -1,0 +1,20 @@
+# 服务端运行依赖（语音模型推理）
+# 默认安装 CPU 版；需要显卡加速时改用 k2-fsa 的 CUDA 源：
+#   -f https://k2-fsa.github.io/sherpa/onnx/cuda-cn.html
+#   sherpa-onnx==1.12.20+cuda12.cudnn9
+sherpa-onnx
+kaldi-native-fbank
+# SenseVoice 引擎用的是自定义 ONNX 推理（core/server/engines/sensevoice_onnx），
+# 不走 sherpa_onnx，必须单独装这两个，否则服务端加载模型时会
+# 报 ModuleNotFoundError: No module named 'onnxruntime'
+onnxruntime
+sentencepiece
+numpy
+soundfile
+gguf
+tqdm
+pypinyin
+websockets
+rich
+pystray
+Pillow

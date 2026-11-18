@@ -1,0 +1,4 @@
+# 界面依赖（设置中心 / 首次引导 / 悬浮条）
+PySide6>=6.5
+numpy
+sounddevice
